@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { VoiceInput } from "@/components/VoiceInput";
 import { 
   Card, 
   CardContent, 
@@ -11,7 +11,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { Calendar, Banknote, Users, MapPin, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar, Banknote, Users, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const eventTypes = [
@@ -52,23 +52,39 @@ export default function CreateEvent() {
   };
   
   const handleCreateEvent = () => {
-    // In a real app, you would save the event details to a database
-    // For now, we'll just redirect to the dashboard
     navigate("/dashboard");
   };
-  
+
+  const processVoiceInput = (text: string) => {
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes('wedding')) {
+      handleEventTypeSelect('wedding');
+    } else if (lowerText.includes('corporate')) {
+      handleEventTypeSelect('corporate');
+    } else if (lowerText.includes('social')) {
+      handleEventTypeSelect('social');
+    } else if (lowerText.includes('custom')) {
+      handleEventTypeSelect('other');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
       
       <main className="flex-grow pt-24 pb-16 px-6">
         <div className="container mx-auto max-w-4xl">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Event</h1>
-            <p className="text-gray-600">Let's start planning your perfect event with the help of our AI assistant.</p>
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Event</h1>
+              <p className="text-gray-600">Let's start planning your perfect event with voice commands or manual input.</p>
+            </div>
+            <VoiceInput 
+              onVoiceInput={processVoiceInput}
+              placeholder="Try saying 'Create a wedding event'"
+            />
           </div>
           
-          {/* Step indicator */}
           <div className="flex items-center mb-10">
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
@@ -96,10 +112,12 @@ export default function CreateEvent() {
             </div>
           </div>
           
-          {/* Step 1: Event Type Selection */}
           {step === 1 && (
             <div>
-              <h2 className="text-xl font-semibold mb-6">Select Event Type</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Select Event Type</h2>
+                <p className="text-sm text-gray-500">Or say "Create a [event type] event"</p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {eventTypes.map((eventType) => (
                   <Card 
@@ -126,10 +144,22 @@ export default function CreateEvent() {
             </div>
           )}
           
-          {/* Step 2: Basic Details */}
           {step === 2 && (
             <div>
-              <h2 className="text-xl font-semibold mb-6">Enter Basic Details</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Enter Basic Details</h2>
+                <VoiceInput 
+                  onVoiceInput={(text) => {
+                    const input = document.activeElement as HTMLInputElement;
+                    if (input?.tagName === 'INPUT' || input?.tagName === 'TEXTAREA') {
+                      input.value = text;
+                      const event = new Event('input', { bubbles: true });
+                      input.dispatchEvent(event);
+                    }
+                  }}
+                  placeholder="Speak to fill the current field"
+                />
+              </div>
               <Card>
                 <CardContent className="p-6">
                   <div className="space-y-4">
